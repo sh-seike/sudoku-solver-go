@@ -29,6 +29,16 @@ import (
 // 7 || 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 |
 // 8 || 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 |
 
+// Boardは数独の盤面を表します。
+// セルのグリッド、行、列、3x3のマス目を含みます。
+// debugフィールドはデバッグ情報の有効/無効を制御します。
+//
+// フィールド:
+//   - grid: 数独の全てのマスを表すCellのslice
+//   - rows: 盤面の行を表すCellへのポインタの2次元slice
+//   - columns: 盤面の列を表すCellへのポインタの2次元slice
+//   - squares: 盤面の3x3のマス目を表すCellへのポインタの2次元slice
+//   - debug: デバッグ情報の有効/無効を制御するbool値
 type Board struct {
 	grid     []Cell
 	rows     [][]*Cell
@@ -37,6 +47,15 @@ type Board struct {
 	debug    bool
 }
 
+// NewBoardは81個のCellで初期化された数独の盤面を作成します。
+// 各Cellにはそれぞれの行、列、および3x3のマス目のインデックスが割り当てられます。
+// この関数は新しく作成されたBoardのポインタを返します。
+//
+// パラメータ:
+//   - debug: デバッグモードを有効にするかどうかを示すフラグ
+//
+// 戻り値:
+//   - *Board: 新しく作成されたBoardインスタンスへのポインタ
 func NewBoard(debug bool) *Board {
 	grid := make([]Cell, 81)
 
@@ -50,6 +69,14 @@ func NewBoard(debug bool) *Board {
 	return NewBoardWithGrid(grid, debug)
 }
 
+// NewBoardWithGridは提供されたCellのグリッドとデバッグフラグを使用して新しいBoardを作成します。
+//
+// パラメータ:
+//   - g: 初期グリッドを表すCellのslice
+//   - d: デバッグモードを有効にするかどうかを示すフラグ
+//
+// 戻り値:
+//   - 新しく作成されたBoardのポインタ
 func NewBoardWithGrid(g []Cell, d bool) *Board {
 	grid := make([]Cell, 81)
 	copy(grid, g)
@@ -99,6 +126,12 @@ func NewBoardWithGrid(g []Cell, d bool) *Board {
 	}
 }
 
+// Updateは指定された位置に解答を設定し、Cellを確定としてマークします。
+// 同時に同じ行、列、および3x3のマス目の固定されていない全てのCellから解答を候補から削除します。
+//
+// パラメータ:
+//   - pos: 盤面の更新する位置
+//   - answer: 指定された位置に設定する値
 func (b *Board) Update(pos int, answer int) {
 	cell := &b.grid[pos]
 	cell.fix(answer)
@@ -123,6 +156,11 @@ func (b *Board) Update(pos int, answer int) {
 	}
 }
 
+// Printは現在の数独の盤面を出力します。
+// 盤面がデバッグモードでなく、forceパラメータがfalseの場合、この関数は出力せずに終了します。
+//
+// パラメータ:
+//   - force - 盤面がデバッグモードでなくても強制的に出力するためのブールフラグ
 func (b *Board) Print(force bool) {
 	if !b.debug && !force {
 		return
@@ -135,6 +173,12 @@ func (b *Board) Print(force bool) {
 	}
 }
 
+// logはデバッグモードが有効な場合にフォーマットされたメッセージをログに記録します。
+// フォーマット文字列とメッセージをフォーマットするための可変個の引数を受け取ります。
+//
+// パラメータ:
+//   - format: ログメッセージのフォーマットを指定する文字列
+//   - a: フォーマット文字列に従ってフォーマットされる可変個の引数
 func (b *Board) log(format string, a ...any) {
 	if !b.debug {
 		return
@@ -142,6 +186,17 @@ func (b *Board) log(format string, a ...any) {
 	fmt.Printf(format+"\n", a...)
 }
 
+// Solveは数独を解きます。
+// これには次の2つの主要なステップを反復して実行します。
+// 1. Cellに候補が1つしかない場合、その値で確定します。
+// 2. 各グループ（行、列、3x3のマス目）について、候補の数字が1つのCellにしか入らない場合、そのCellをその値で確定します。
+//
+// パラメータ:
+//   - depth: 再帰呼び出しの現在の深さを表す整数（この関数そのものは再起呼び出しになっていないがSolve2から呼び出された際のログの整形に使用）
+//
+// 戻り値:
+//   - 数独が正常に解けたかどうかを示すブール値
+//   - 数独が解けた場合は解決されたグリッドを表すCellのslice、解けなかった場合はnil
 func (b *Board) Solve(depth int) (bool, []Cell) {
 	groups := make([][]*Cell, 0, 27)
 	groups = append(groups, b.rows...)
@@ -229,6 +284,15 @@ func (b *Board) Solve(depth int) (bool, []Cell) {
 	}
 }
 
+// Solve2は数独を解きます。
+// Solveでは解けない場合、確定していないCellに対して候補から答えを仮定して再起的に解いていきます。
+//
+// パラメータ:
+//   - depth: 再帰呼び出しの現在の深さを表す整数
+//
+// 戻り値:
+//   - 数独が正常に解けたかどうかを示すブール値
+//   - 数独が解けた場合は解決されたグリッドを表すCellのslice、解けなかった場合はnil
 func (b *Board) Solve2(depth int) (bool, []Cell) {
 	spaces := strings.Repeat("  ", depth)
 	for {
@@ -285,9 +349,10 @@ func (b *Board) Solve2(depth int) (bool, []Cell) {
 	} else {
 		return false, nil
 	}
-
 }
 
+// noCandidatesは、盤面のグリッド内に固定されておらず、候補が残っていないセルがあるかどうかを確認します。
+// そのようなセルが見つかった場合、これ以上の手が打てない矛盾した状態であることを示すためにtrueを返します。
 func (b *Board) noCandidates() bool {
 	for _, c := range b.grid {
 		if !c.isFixed && len(c.candidates) == 0 {
