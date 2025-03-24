@@ -186,7 +186,7 @@ func (b *Board) log(format string, a ...any) {
 	fmt.Printf(format+"\n", a...)
 }
 
-// Solveは数独を解きます。
+// SolveLevel1は数独を解きます。
 // これには次の2つの主要なステップを反復して実行します。
 // 1. Cellに候補が1つしかない場合、その値で確定します。
 // 2. 各グループ（行、列、3x3のマス目）について、候補の数字が1つのCellにしか入らない場合、そのCellをその値で確定します。
@@ -197,7 +197,7 @@ func (b *Board) log(format string, a ...any) {
 // 戻り値:
 //   - 数独が正常に解けたかどうかを示すブール値
 //   - 数独が解けた場合は解決されたグリッドを表すCellのslice、解けなかった場合はnil
-func (b *Board) Solve(depth int) (bool, []Cell) {
+func (b *Board) SolveLevel1(depth int) (bool, []Cell) {
 	groups := make([][]*Cell, 0, 27)
 	groups = append(groups, b.rows...)
 	groups = append(groups, b.collumns...)
@@ -284,8 +284,8 @@ func (b *Board) Solve(depth int) (bool, []Cell) {
 	}
 }
 
-// Solve2は数独を解きます。
-// Solveでは解けない場合、確定していないCellに対して候補から答えを仮定して再起的に解いていきます。
+// SolveLevel2は数独を解きます。
+// SolveLevel1では解けない場合、確定していないCellに対して候補から答えを仮定して再起的に解いていきます。
 //
 // パラメータ:
 //   - depth: 再帰呼び出しの現在の深さを表す整数
@@ -293,10 +293,10 @@ func (b *Board) Solve(depth int) (bool, []Cell) {
 // 戻り値:
 //   - 数独が正常に解けたかどうかを示すブール値
 //   - 数独が解けた場合は解決されたグリッドを表すCellのslice、解けなかった場合はnil
-func (b *Board) Solve2(depth int) (bool, []Cell) {
+func (b *Board) SolveLevel2(depth int) (bool, []Cell) {
 	spaces := strings.Repeat("  ", depth)
 	for {
-		isClear, _ := b.Solve(depth)
+		isClear, _ := b.SolveLevel1(depth)
 		if isClear {
 			return true, b.grid
 		}
@@ -317,7 +317,7 @@ func (b *Board) Solve2(depth int) (bool, []Cell) {
 				b.log("%s深さ: %d POS[%d]を%dと仮定。候補%d", spaces, depth, i, candidate, tempCnadidates)
 				temp := NewBoardWithGrid(b.grid, b.debug)
 				temp.Update(i, candidate)
-				solved, grid := temp.Solve2(depth + 1)
+				solved, grid := temp.SolveLevel2(depth + 1)
 				if solved {
 					copy(b.grid, grid)
 					b.log("%sクリア！深さ: %d POS[%d]を%dと仮定", spaces, depth, i, candidate)

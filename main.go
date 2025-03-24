@@ -74,9 +74,9 @@ func main() {
 
 	isClear := false
 	if *level > 1 {
-		isClear, _ = board.Solve2(0)
+		isClear, _ = board.SolveLevel2(0)
 	} else {
-		isClear, _ = board.Solve(0)
+		isClear, _ = board.SolveLevel1(0)
 	}
 	if isClear {
 		fmt.Println("DONE!")
