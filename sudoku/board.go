@@ -210,6 +210,7 @@ func (b *Board) SolveLevel1(depth int) (bool, []Cell) {
 		step1Loop := 0
 		for {
 			step1Loop++
+			// STEP1: Cellに候補が1つしかない場合、その値を答えとして確定する
 			b.log("%sSTEP1 %d - %d", spaces, loop, step1Loop)
 			step1Updated := false
 			for i, c := range b.grid {
@@ -231,6 +232,7 @@ func (b *Board) SolveLevel1(depth int) (bool, []Cell) {
 		}
 
 		isUpdated := false
+		// STEP2: 各グループ（行、列、3x3のマス目）について、候補の数字が1つのCellにしか入らない場合、そのCellをその値で確定する
 		b.log("%sSTEP2 %d", spaces, loop)
 		for gi, g := range groups {
 			for i := 1; i <= 9; i = i + 1 {
